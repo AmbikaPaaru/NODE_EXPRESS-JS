@@ -16,7 +16,6 @@ const createContact = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("all fields are mandetory");
   }
-  // console.log(name, email, phone);
   const constactsList = await Contacts.create({
     name,
     email,
@@ -24,7 +23,7 @@ const createContact = asyncHandler(async (req, res) => {
     user_id: req.user.id,
   });
 
-  res.status(201).json(constactsList);
+  res.status(201).json({message:"contact created successfully"});
 });
 
 const getContact = asyncHandler(async (req, res) => {
@@ -56,16 +55,17 @@ const updateContact = asyncHandler(async (req, res) => {
 
 const deleteContact = asyncHandler(async (req, res) => {
   const contact = await Contacts.findById(req.params.id);
+  console.log(contact?.user_id,req.user.id)
   if (!contact) {
     res.status(404);
     throw new Error("Contact not found");
   }
-  if (contact.user_id.toString() !== req.user.id) {
+  if (contact?.user_id.toString() !== req.user.id) {
     res.status(403);
     throw new Error("User don't have permission to delete other contacts");
   }
   await Contacts.deleteOne({ _id: req.params.id });
-  res.status(200).json(contact);
+  res.status(200).json({message:"delete successfully"});
 });
 
 module.exports = {

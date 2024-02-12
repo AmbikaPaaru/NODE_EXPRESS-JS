@@ -3,26 +3,8 @@ const bcrypt = require("bcrypt");
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 
-const usersList = asyncHandler(async (req, res) => {
-  try {
-    if (req.user) {
-      const currentUser = req.user;
-      const users = await User.find({ _id: { $ne: currentUser.id } });
-      res.status(200).json(users);
-    } else {
-      res.status(403);
-      throw new Error(
-        "Access denied. You must be a superadmin to list all users."
-      );
-    }
-  } catch (error) {
-    res.status(500);
-    throw new Error("Unable to fetch users");
-  }
-});
-
 const registerUser = asyncHandler(async (req, res) => {
-  const {username, email, role, password } = req.body;
+  const { username, email, role, password } = req.body;
   if (!username || !email || !role || !password) {
     res.status(400);
     throw new Error("All fields are mandatory!");
@@ -44,13 +26,13 @@ const registerUser = asyncHandler(async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
-      userId:generateRandom4DigitNumber().toString(),
-      username, 
+      userId: generateRandom4DigitNumber().toString(),
+      username,
       email,
       role,
       password: hashedPassword,
     });
-    
+
     if (user) {
       res
         .status(201)
@@ -61,9 +43,8 @@ const registerUser = asyncHandler(async (req, res) => {
     }
   } catch (error) {
     console.error("Error during user registration:", error);
-      console.error("Error during user registration:", error);
-      res.status(500).json({ error: "Internal server error" });
-   
+    console.error("Error during user registration:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -100,6 +81,25 @@ const currentUser = asyncHandler(async (req, res) => {
   res.status(200).json(req.user);
 });
 
+const usersList = asyncHandler(async (req, res) => {
+  try {
+    console.log("res", req);
+    if (req.user) {
+      const currentUser = req.user?.email;
+      const users = await User.find({ _id: { $ne: currentUser.id } });
+      res.status(200).json(users);
+    } else {
+      res.status(403);
+      throw new Error(
+        "Access denied. You must be a superadmin to list all users."
+      );
+    }
+  } catch (error) {
+    res.status(500);
+    throw new Error("Unable to fetch users");
+  }
+});
+
 const updateRole = asyncHandler(async (req, res) => {
   try {
     if (req.user && req.user.role === "superadmin") {
@@ -107,7 +107,7 @@ const updateRole = asyncHandler(async (req, res) => {
       const newRole = req.query.newRole;
       const newName = req.query.newName;
 
-      const updates = {}; 
+      const updates = {};
 
       if (newRole) {
         updates.role = newRole;
@@ -133,7 +133,9 @@ const updateRole = asyncHandler(async (req, res) => {
       res.status(200).json({ message: "User properties updated successfully" });
     } else {
       res.status(403);
-      throw new Error("Access denied. You must be a superadmin to update user properties.");
+      throw new Error(
+        "Access denied. You must be a superadmin to update user properties."
+      );
     }
   } catch (error) {
     res.status(500);
